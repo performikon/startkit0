@@ -1,0 +1,18 @@
+{
+  "name": "@repo/prettier-config",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "clean": "echo 'No clean step needed for config package'"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

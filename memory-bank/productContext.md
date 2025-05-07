@@ -17,13 +17,11 @@ This file provides a high-level overview of the project and the expected product
 
 ### Phase 1 (Current)
 
-- Core API Service (NestJS) with:
-  - Basic user authentication (email/password)
-  - Simple user profile management
-  - Basic account creation and management
-  - Fundamental subscription capabilities
-- Documentation site with essential guides
-- Shared component library foundation
+- Set up the Core app
+- Set up the Supabase package and client interfaces for auth, db, storage
+- Set up Supabase initialization and migrations/seed
+- Set up environment variables for development and production
+- Update documentation site with essential guides
 
 ### Future Phases
 

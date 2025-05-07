@@ -11,6 +11,12 @@ This file records architectural and implementation decisions using a list format
 - Adopt a monorepo architecture using Turborepo
 - Implement a phase-based approach with strict feature sizing guidelines
 
+## Decision
+
+- Adopt a monorepo architecture using Turborepo
+- Implement a phase-based approach with strict feature sizing guidelines
+- Centralize Supabase integration in a shared package (`packages/supabase`)
+
 ## Rationale
 
 - Monorepo architecture:

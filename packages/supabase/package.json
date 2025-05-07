@@ -1,0 +1,25 @@
+{
+  "name": "@repo/supabase",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Shared package for Supabase integration",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint .",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*"
+  },
+  "dependencies": {
+    "@repo/types": "*",
+    "@supabase/supabase-js": "^2.49.4"
+  }
+}

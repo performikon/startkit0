@@ -8,7 +8,8 @@
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "generate:component": "turbo gen react-component",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
@@ -16,11 +17,10 @@
     "@turbo/gen": "^2.5.0",
     "@types/node": "^22.15.3",
     "@types/react": "19.1.0",
-    "@types/react-dom": "19.1.1",
-    "eslint": "^9.26.0",
-    "typescript": "5.8.2"
+    "@types/react-dom": "19.1.1"
   },
   "dependencies": {
+    "@repo/types": "*",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   }
