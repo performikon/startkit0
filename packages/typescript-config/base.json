@@ -16,12 +16,12 @@
     "target": "ES2022",
     "baseUrl": ".",
     "paths": {
-      "@repo/types": ["../../packages/types/src"],
-      "@repo/types/*": ["../../packages/types/src/*"],
+      "@repo/types": ["../../packages/types/dist"],
+      "@repo/types/*": ["../../packages/types/dist/*"],
       "@repo/ui": ["../../packages/ui/src"],
       "@repo/ui/*": ["../../packages/ui/src/*"],
-      "@repo/supabase": ["../../packages/supabase/src"],
-      "@repo/supabase/*": ["../../packages/supabase/src/*"]
+      "@repo/supabase": ["../../packages/supabase/dist"],
+      "@repo/supabase/*": ["../../packages/supabase/dist/*"]
     }
   }
 }
