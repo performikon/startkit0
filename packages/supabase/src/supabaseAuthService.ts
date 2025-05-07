@@ -1,6 +1,7 @@
 // packages/supabase/src/supabaseAuthService.ts
 
 import { AuthResponse, Session, User } from '@supabase/supabase-js';
+import { SupabaseAuthError } from './errors.js';
 import { ISupabaseAuthService, ISupabaseClient } from './interfaces.js';
 
 export class SupabaseAuthService implements ISupabaseAuthService {
@@ -22,7 +23,7 @@ export class SupabaseAuthService implements ISupabaseAuthService {
       const { email, password } = credentials;
 
       if (!email || !password) {
-        throw new Error('Email and password are required');
+        throw new SupabaseAuthError('Email and password are required');
       }
 
       return await this.client.auth.signUp({
@@ -31,7 +32,7 @@ export class SupabaseAuthService implements ISupabaseAuthService {
       });
     } catch (error) {
       console.error('Error signing up:', error);
-      throw error;
+      throw new SupabaseAuthError('Failed to sign up', error);
     }
   }
 
@@ -43,7 +44,7 @@ export class SupabaseAuthService implements ISupabaseAuthService {
       const { email, password } = credentials;
 
       if (!email || !password) {
-        throw new Error('Email and password are required');
+        throw new SupabaseAuthError('Email and password are required');
       }
 
       return await this.client.auth.signInWithPassword({
@@ -52,22 +53,22 @@ export class SupabaseAuthService implements ISupabaseAuthService {
       });
     } catch (error) {
       console.error('Error signing in:', error);
-      throw error;
+      throw new SupabaseAuthError('Failed to sign in with password', error);
     }
   }
 
-  async signOut(): Promise<AuthResponse> {
+  async signOut(): Promise<void> {
     try {
       const { error } = await this.client.auth.signOut();
 
-      // Manually construct the AuthResponse structure
-      return {
-        data: { user: null, session: null },
-        error: error || null,
-      } as AuthResponse;
+      if (error) {
+        console.error('Error signing out:', error);
+        throw new SupabaseAuthError('Failed to sign out', error);
+      }
+      // On successful sign out, no data is returned, so we return void.
     } catch (error) {
-      console.error('Error signing out:', error);
-      throw error;
+       console.error('Error signing out:', error);
+       throw new SupabaseAuthError('Failed to sign out', error);
     }
   }
 
@@ -82,7 +83,7 @@ export class SupabaseAuthService implements ISupabaseAuthService {
       return { data: { session: data.session } };
     } catch (error) {
       console.error('Error getting session:', error);
-      return { data: { session: null } };
+      throw new SupabaseAuthError('Failed to get session', error);
     }
   }
 
@@ -97,7 +98,7 @@ export class SupabaseAuthService implements ISupabaseAuthService {
       return { data: { user: data.user } };
     } catch (error) {
       console.error('Error getting user:', error);
-      return { data: { user: null } };
+      throw new SupabaseAuthError('Failed to get user', error);
     }
   }
 }

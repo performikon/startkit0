@@ -2,10 +2,9 @@
 
 import {
   AuthResponse,
-  GoTrueClient,
   Session, // Import GoTrueClient type
   SupabaseClient,
-  User,
+  User
 } from '@supabase/supabase-js';
 
 // Define the shape of the Supabase client instance
@@ -14,16 +13,16 @@ export interface ISupabaseClient extends SupabaseClient {}
 // Interface for Database operations
 export interface ISupabaseDbService {
   getClient(): ISupabaseClient;
-  findMany<T>(table: string, select?: string): Promise<T[] | null>;
+  findMany<T>(table: string, select?: string): Promise<T[]>;
   findOne<T>(table: string, match: object): Promise<T | null>;
-  insert<T>(table: string, values: object): Promise<T | null>;
+  insert<T>(table: string, values: object): Promise<T>;
   update<T>(table: string, match: object, values: object): Promise<T | null>;
   delete(table: string, match: object): Promise<void>;
 }
 
 // Interface for Authentication operations
 export interface ISupabaseAuthService {
-  getClient(): GoTrueClient; // Use the imported GoTrueClient type
+  getClient(): ISupabaseClient['auth'];
   signUp(credentials: {
     email?: string;
     password?: string;
@@ -32,7 +31,7 @@ export interface ISupabaseAuthService {
     email?: string;
     password?: string;
   }): Promise<AuthResponse>;
-  signOut(): Promise<AuthResponse>;
+  signOut(): Promise<void>;
   getSession(): Promise<{ data: { session: Session | null } }>;
   getUser(): Promise<{ data: { user: User | null } }>;
   // Add other auth methods as needed
@@ -40,37 +39,32 @@ export interface ISupabaseAuthService {
 
 // Interface for Storage operations
 export interface ISupabaseStorageService {
-  getClient(): any; // Temporarily use any to unblock build
+  getClient(): ISupabaseClient['storage'];
   upload(
     bucketName: string,
     path: string,
-    file: File | Blob | ArrayBuffer | ArrayBufferView, // Use more general types
-    options?: any
-  ): Promise<{ data: { path: string } | null; error: any | null }>;
+    file: File | Blob | ArrayBuffer | ArrayBufferView,
+    options?: import('@supabase/storage-js').FileOptions
+  ): Promise<{ data: { path: string } | null; error: import('@supabase/storage-js').StorageError | null }>;
   download(
     bucketName: string,
     path: string,
-    options?: any
-  ): Promise<{ data: Blob | null; error: any | null }>;
+    options?: { transform?: import('@supabase/storage-js').TransformOptions }
+  ): Promise<{ data: Blob | null; error: import('@supabase/storage-js').StorageError | null }>;
   list(
     bucketName: string,
     path?: string,
-    options?: {
-      search?: string;
-      limit?: number;
-      offset?: number;
-      sortBy?: { column?: string; order?: string };
-    } // Define a basic options type
-  ): Promise<{ data: any[] | null; error: any | null }>;
+    options?: import('@supabase/storage-js').SearchOptions
+  ): Promise<{ data: import('@supabase/storage-js').FileObject[] | null; error: import('@supabase/storage-js').StorageError | null }>;
   update(
     bucketName: string,
     path: string,
-    file: File | Blob | ArrayBuffer | ArrayBufferView, // Use more general types
-    options?: any
-  ): Promise<{ data: { path: string } | null; error: any | null }>;
+    file: File | Blob | ArrayBuffer | ArrayBufferView,
+    options?: import('@supabase/storage-js').FileOptions
+  ): Promise<{ data: { path: string } | null; error: import('@supabase/storage-js').StorageError | null }>;
   remove(
     bucketName: string,
     paths: string[]
-  ): Promise<{ data: any[] | null; error: any | null }>;
+  ): Promise<{ data: import('@supabase/storage-js').FileObject[] | null; error: import('@supabase/storage-js').StorageError | null }>;
   // Add other storage methods as needed
 }

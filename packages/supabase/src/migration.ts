@@ -4,13 +4,15 @@ import execa from 'execa';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { MissingEnvironmentVariableError, SupabaseMigrationError } from './errors.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const supabaseDir = path.resolve(__dirname, '../'); // Path to the supabase directory
-const migrationsDir = path.resolve(supabaseDir, 'supabase/migrations');
-const seedFilePath = path.resolve(supabaseDir, 'supabase/seeds/seed.sql');
+const migrationsDir = path.resolve(supabaseDir, 'db/migrations');
+const seedFilePath = path.resolve(supabaseDir, 'db/seeds/seed.sql');
+const configDir = path.resolve(supabaseDir, 'db'); // Updated path to the config directory
 
 /**
  * Runs all pending Supabase migrations
@@ -22,12 +24,12 @@ export async function runMigrations() {
     await ensureMigrationsDir();
     
     // This command assumes you have the Supabase CLI installed and configured
-    // It will apply pending migrations in the supabase/migrations directory
+    // It will apply pending migrations in the db/migrations directory
     const { stdout, stderr } = await execa(
       'supabase',
       ['migration', 'up'],
       {
-        cwd: supabaseDir,
+        cwd: configDir, // Use the updated config directory path
         shell: true,
       }
     );
@@ -40,7 +42,7 @@ export async function runMigrations() {
     console.log('Supabase migrations finished.');
   } catch (error) {
     console.error('Error running Supabase migrations:', error);
-    throw error;
+    throw new SupabaseMigrationError('Failed to run Supabase migrations', error);
   }
 }
 
@@ -51,7 +53,7 @@ export async function runMigrations() {
 export async function seedDatabase(reset = false) {
   console.log('Seeding Supabase database...');
   if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL environment variable is not set.');
+    throw new MissingEnvironmentVariableError('DATABASE_URL');
   }
   
   try {
@@ -71,7 +73,7 @@ export async function seedDatabase(reset = false) {
           process.env.DATABASE_URL,
         ],
         {
-          cwd: supabaseDir,
+          cwd: configDir, // Use the updated config directory path
           env: {
             ...process.env,
             DATABASE_URL: process.env.DATABASE_URL,
@@ -106,7 +108,7 @@ export async function seedDatabase(reset = false) {
     console.log('Supabase database seeding finished.');
   } catch (error) {
     console.error('Error seeding Supabase database:', error);
-    throw error;
+    throw new SupabaseMigrationError('Failed to seed Supabase database', error);
   }
 }
 
@@ -136,7 +138,7 @@ export async function createMigration(name: string): Promise<string> {
     return migrationPath;
   } catch (error) {
     console.error('Error creating migration:', error);
-    throw error;
+    throw new SupabaseMigrationError('Failed to create migration', error);
   }
 }
 
@@ -151,7 +153,7 @@ export async function linkProject(projectRef: string) {
       'supabase',
       ['link', '--project-ref', projectRef],
       {
-        cwd: supabaseDir,
+        cwd: configDir, // Use the updated config directory path
         shell: true,
       }
     );
@@ -162,7 +164,7 @@ export async function linkProject(projectRef: string) {
     console.log('Project linked successfully.');
   } catch (error) {
     console.error('Error linking project:', error);
-    throw error;
+    throw new SupabaseMigrationError('Failed to link project', error);
   }
 }
 
@@ -176,7 +178,7 @@ export async function pullSchema() {
       'supabase',
       ['db', 'pull'],
       {
-        cwd: supabaseDir,
+        cwd: configDir, // Use the updated config directory path
         shell: true,
       }
     );
@@ -187,7 +189,7 @@ export async function pullSchema() {
     console.log('Schema pulled successfully.');
   } catch (error) {
     console.error('Error pulling schema:', error);
-    throw error;
+    throw new SupabaseMigrationError('Failed to pull schema', error);
   }
 }
 
@@ -201,7 +203,7 @@ export async function listMigrations() {
       'supabase',
       ['migration', 'list'],
       {
-        cwd: supabaseDir,
+        cwd: configDir, // Use the updated config directory path
         shell: true,
       }
     );
@@ -210,7 +212,7 @@ export async function listMigrations() {
     if (stderr) console.error(stderr);
   } catch (error) {
     console.error('Error listing migrations:', error);
-    throw error;
+    throw new SupabaseMigrationError('Failed to list migrations', error);
   }
 }
 
@@ -222,7 +224,7 @@ async function ensureMigrationsDir() {
     await fs.mkdir(migrationsDir, { recursive: true });
   } catch (error) {
     console.error('Error creating migrations directory:', error);
-    throw error;
+    throw new SupabaseMigrationError('Failed to ensure migrations directory exists', error);
   }
 }
 
@@ -247,6 +249,6 @@ async function ensureSeedFile() {
     }
   } catch (error) {
     console.error('Error ensuring seed file exists:', error);
-    throw error;
+    throw new SupabaseMigrationError('Failed to ensure seed file exists', error);
   }
 }

@@ -1,10 +1,7 @@
 # Product Context
 
-This file provides a high-level overview of the project and the expected product that will be created. Initially it is based upon projectBrief.md (if provided) and all other available project-related information in the working directory. This file is intended to be updated as the project evolves, and should be used to inform all other modes of the project's goals and context.
-2025-05-07 14:28:05 - Log of updates made will be appended as footnotes to the end of this file.
-2025-05-07 14:45:42 - Updated based on newly created projectBrief.md content.
-
--
+This file provides a high-level overview of the project and the expected product that will be created.
+This file is intended to be updated as the project evolves, and should be used to inform all other modes of the project's goals and context.
 
 ## Project Goal
 
@@ -20,7 +17,9 @@ This file provides a high-level overview of the project and the expected product
 - Set up the Core app
 - Set up the Supabase package and client interfaces for auth, db, storage
 - Set up Supabase initialization and migrations/seed
-- Set up environment variables for development and production
+- Set up logging and monitoring
+- Set up testing frameworks and infrastructure
+- Set up Docker and environment variables for development and production
 - Update documentation site with essential guides
 
 ### Future Phases

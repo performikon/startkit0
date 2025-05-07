@@ -1,99 +1,74 @@
-# Supabase Package
+# @repo/supabase
 
-This package provides utilities for working with Supabase in your project.
+This package provides shared functionality for integrating with Supabase, including database migrations, seeding, authentication, and storage.
 
-## Database Migrations
+## Database Workflows
 
-The migration system allows you to manage your Supabase database schema in a version-controlled way.
+This package includes scripts and npm commands to manage your Supabase database schema and data.
 
-### Directory Structure
+### Prerequisites
 
-```
-packages/supabase/
-├── supabase/
-│   ├── migrations/       # SQL migration files
-│   │   └── 20250507185213_initial_schema.sql
-│   └── seed.sql          # Seed data for development
-├── src/                  # TypeScript source files
-├── dist/                 # Compiled JavaScript files
-├── run-migrations-script.js  # Script to run migrations
-└── view-database.js      # Script to view database contents
-```
+- Ensure you have the Supabase CLI installed and configured locally.
+- Set the `DATABASE_URL` environment variable in your `.env` file for seeding operations.
 
 ### Running Migrations
 
-To apply all pending migrations:
+To apply any pending database migrations, use the following command:
 
 ```bash
-node packages/supabase/run-migrations-script.js
+pnpm run migrate:up
 ```
 
-To apply migrations and seed the database:
+This will run the `scripts/migrations/run-migrations.js` which executes `supabase migration up` in the correct directory.
+
+### Seeding the Database
+
+To seed the database with initial data from `db/seeds/seed.sql`, use the following command:
 
 ```bash
-node packages/supabase/run-migrations-script.js --seed
+pnpm run db:seed
 ```
 
-### Viewing Database Contents
+This will run the `scripts/migrations/run-migrations.js` with the `--seed` flag.
 
-To list all tables in the database:
+To reset the database and then seed it (this is a destructive operation and will delete all data), use:
 
 ```bash
-node packages/supabase/view-database.js
+pnpm run db:seed:reset
 ```
 
-To view the contents of a specific table:
+This will run the `scripts/migrations/run-migrations.js` with the `--seed` and `--reset` flags.
+
+### Creating New Migrations
+
+To create a new migration file, use the following command:
 
 ```bash
-node packages/supabase/view-database.js public.profiles
+pnpm run migrate:create <migration-name>
 ```
 
-## Environment Variables
+Replace `<migration-name>` with a descriptive name for your migration (e.g., `add_users_table`). This will create a new SQL file in the `db/migrations` directory with a timestamp prefix.
 
-The following environment variables are used:
+### Viewing Database State
 
-- `DATABASE_URL`: Connection string for the Supabase PostgreSQL database
-  - Default: `postgresql://postgres:postgres@localhost:54322/postgres`
+To view the list of all tables in your database, use:
 
-These can be set in a `.env` file at the root of your project.
-
-## Creating New Migrations
-
-To create a new migration file:
-
-1. Create a new SQL file in the `supabase/migrations` directory
-2. Name it with a timestamp prefix, e.g., `20250508000000_add_products_table.sql`
-3. Write your SQL migration code
-4. Run the migrations script to apply it
-
-Example migration file:
-
-```sql
--- Migration: Add products table
--- Created at: 2025-05-08T00:00:00.000Z
-
--- Create products table
-CREATE TABLE IF NOT EXISTS public.products (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name TEXT NOT NULL,
-  description TEXT,
-  price DECIMAL(10, 2) NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- Add updated_at trigger to products table
-CREATE TRIGGER set_products_updated_at
-  BEFORE UPDATE ON public.products
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+```bash
+pnpm run db:view
 ```
 
-## Seeding Data
+To view the structure and contents of specific tables, provide the table names as arguments:
 
-The seed file (`supabase/seed.sql`) is used to populate the database with initial data for development and testing.
+```bash
+pnpm run db:view users products
+```
 
-Note that when seeding user profiles, you should be aware of the foreign key constraint to the `auth.users` table. In a real application, you would:
+This will run the `scripts/utils/view-database.js` script.
 
-1. Create users through the Supabase Auth API
-2. Let the trigger function create the profiles automatically
-3. Update the profiles with additional data if needed
+### Best Practices for Database Changes
+
+- Always create a new migration file for any schema changes.
+- Use descriptive names for your migration files.
+- Write your SQL migrations to be idempotent where possible.
+- Test your migrations and seeds locally before applying them to staging or production environments.
+- Be cautious when using `db:seed:reset` as it will delete all data.
