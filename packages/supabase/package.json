@@ -16,7 +16,8 @@
   "license": "MIT",
   "devDependencies": {
     "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*"
+    "@repo/typescript-config": "*",
+    "supabase": "^1.24.0"
   },
   "dependencies": {
     "@repo/types": "*",
