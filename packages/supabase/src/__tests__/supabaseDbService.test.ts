@@ -82,6 +82,32 @@ describe('SupabaseDbService', () => {
       await expect(service.findMany('test_table')).rejects.toThrow(SupabaseDbError);
       await expect(service.findMany('test_table')).rejects.toThrow('Failed to fetch from test_table');
     });
+
+    // New test for unexpected response format
+    it('should throw SupabaseDbError on unexpected response format', async () => {
+      (mockSelect as jest.Mock<any>).mockResolvedValueOnce('invalid response');
+
+      await expect(service.findMany('test_table')).rejects.toThrow(SupabaseDbError);
+      await expect(service.findMany('test_table')).rejects.toThrow('Failed to fetch from test_table');
+    });
+
+    // New test for unexpected error
+    it('should handle unexpected errors during findMany', async () => {
+      const unexpectedError = new Error('Network error');
+      (mockSelect as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
+
+      await expect(service.findMany('test_table')).rejects.toThrow(SupabaseDbError);
+      await expect(service.findMany('test_table')).rejects.toThrow('Failed to fetch from test_table');
+    });
+
+    // New test for empty result
+    it('should return empty array when no data is found', async () => {
+      (mockSelect as jest.Mock<any>).mockResolvedValueOnce({ data: null, error: null });
+
+      const result = await service.findMany('test_table');
+
+      expect(result).toEqual([]);
+    });
   });
 
   describe('findOne', () => {
@@ -116,6 +142,24 @@ describe('SupabaseDbService', () => {
       await expect(service.findOne('test_table', { id: 1 })).rejects.toThrow(SupabaseDbError);
       await expect(service.findOne('test_table', { id: 1 })).rejects.toThrow('Failed to fetch from test_table with match');
     });
+
+    // New test for unexpected error
+    it('should handle unexpected errors during findOne', async () => {
+      const unexpectedError = new Error('Network error');
+      (mockSingle as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
+
+      await expect(service.findOne('test_table', { id: 1 })).rejects.toThrow(SupabaseDbError);
+      await expect(service.findOne('test_table', { id: 1 })).rejects.toThrow('Failed to fetch from test_table with match');
+    });
+
+    // New test for null result with no error
+    it('should return null when data is null but no error is present', async () => {
+      (mockSingle as jest.Mock<any>).mockResolvedValueOnce({ data: null, error: null });
+
+      const result = await service.findOne('test_table', { id: 1 });
+
+      expect(result).toBeNull();
+    });
   });
 
   describe('insert', () => {
@@ -138,6 +182,25 @@ describe('SupabaseDbService', () => {
       const mockError = { message: 'Insert failed', code: '123' };
       // Make sure the mock returns the same value for both calls
       (mockSingle as jest.Mock<any>).mockImplementation(() => ({ data: null, error: mockError }));
+
+      await expect(service.insert('test_table', values)).rejects.toThrow(SupabaseDbError);
+      await expect(service.insert('test_table', values)).rejects.toThrow('Failed to insert into test_table');
+    });
+
+    // New test for unexpected response format
+    it('should throw SupabaseDbError on unexpected response format', async () => {
+      const values = { name: 'New Item' };
+      (mockSingle as jest.Mock<any>).mockResolvedValueOnce('invalid response');
+
+      await expect(service.insert('test_table', values)).rejects.toThrow(SupabaseDbError);
+      await expect(service.insert('test_table', values)).rejects.toThrow('Failed to insert into test_table');
+    });
+
+    // New test for unexpected error
+    it('should handle unexpected errors during insert', async () => {
+      const values = { name: 'New Item' };
+      const unexpectedError = new Error('Network error');
+      (mockSingle as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
 
       await expect(service.insert('test_table', values)).rejects.toThrow(SupabaseDbError);
       await expect(service.insert('test_table', values)).rejects.toThrow('Failed to insert into test_table');
@@ -182,6 +245,27 @@ describe('SupabaseDbService', () => {
       await expect(service.update('test_table', match, values)).rejects.toThrow(SupabaseDbError);
       await expect(service.update('test_table', match, values)).rejects.toThrow('Failed to update test_table with match');
     });
+
+    // New test for unexpected response format
+    it('should throw SupabaseDbError on unexpected response format', async () => {
+      const match = { id: 1 };
+      const values = { name: 'Updated Item' };
+      (mockSingle as jest.Mock<any>).mockResolvedValueOnce('invalid response');
+
+      await expect(service.update('test_table', match, values)).rejects.toThrow(SupabaseDbError);
+      await expect(service.update('test_table', match, values)).rejects.toThrow('Failed to update test_table with match');
+    });
+
+    // New test for unexpected error
+    it('should handle unexpected errors during update', async () => {
+      const match = { id: 1 };
+      const values = { name: 'Updated Item' };
+      const unexpectedError = new Error('Network error');
+      (mockSingle as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
+
+      await expect(service.update('test_table', match, values)).rejects.toThrow(SupabaseDbError);
+      await expect(service.update('test_table', match, values)).rejects.toThrow('Failed to update test_table with match');
+    });
   });
 
   describe('delete', () => {
@@ -201,6 +285,25 @@ describe('SupabaseDbService', () => {
       const mockError = { message: 'Delete failed', code: '123' };
       // Make sure the mock returns the same value for both calls
       (mockMatch as jest.Mock<any>).mockImplementation(() => ({ error: mockError }));
+
+      await expect(service.delete('test_table', match)).rejects.toThrow(SupabaseDbError);
+      await expect(service.delete('test_table', match)).rejects.toThrow('Failed to delete from test_table with match');
+    });
+
+    // New test for unexpected response format
+    it('should throw SupabaseDbError on unexpected response format', async () => {
+      const match = { id: 1 };
+      (mockMatch as jest.Mock<any>).mockResolvedValueOnce('invalid response');
+
+      await expect(service.delete('test_table', match)).rejects.toThrow(SupabaseDbError);
+      await expect(service.delete('test_table', match)).rejects.toThrow('Failed to delete from test_table with match');
+    });
+
+    // New test for unexpected error
+    it('should handle unexpected errors during delete', async () => {
+      const match = { id: 1 };
+      const unexpectedError = new Error('Network error');
+      (mockMatch as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
 
       await expect(service.delete('test_table', match)).rejects.toThrow(SupabaseDbError);
       await expect(service.delete('test_table', match)).rejects.toThrow('Failed to delete from test_table with match');

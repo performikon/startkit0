@@ -144,19 +144,27 @@ export class SupabaseStorageService implements ISupabaseStorageService {
     bucketName: string,
     paths: string[]
   ): Promise<{ data: import('@supabase/storage-js').FileObject[] | null; error: import('@supabase/storage-js').StorageError | null }> {
-    const result = await this.client.storage.from(bucketName).remove(paths);
+    try {
+      const result = await this.client.storage.from(bucketName).remove(paths);
 
-    // Handle case where result might be undefined or null
-    if (!result) {
-      console.error('Error removing files: Received undefined result');
-      throw new SupabaseStorageError('Failed to remove files');
+      // Handle case where result might be undefined or null
+      if (!result) {
+        console.error('Error removing files: Received undefined result');
+        throw new SupabaseStorageError('Failed to remove files');
+      }
+
+      if (result.error) {
+        console.error('Error removing files:', result.error);
+        throw new SupabaseStorageError('Failed to remove files', result.error);
+      }
+
+      return result;
+    } catch (error: any) {
+      if (error instanceof SupabaseStorageError) {
+        throw error;
+      }
+      console.error('Unexpected error removing files:', error);
+      throw new SupabaseStorageError('Failed to remove files', error);
     }
-
-    if (result.error) {
-      console.error('Error removing files:', result.error);
-      throw new SupabaseStorageError('Failed to remove files', result.error);
-    }
-
-    return result;
   }
 }

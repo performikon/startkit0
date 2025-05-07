@@ -155,15 +155,18 @@ export class SupabaseDbService implements ISupabaseDbService {
       const result = await this.client.from(table).delete().match(match);
       
       // For testing purposes, we need to handle the mock response format
-      if (result && 'error' in result) {
-        const { error } = result;
-
-        if (error) {
-          console.error(`Error deleting from ${table} with match:`, match, error);
-          throw new SupabaseDbError(`Failed to delete from ${table} with match`, error.code, error);
+      if (result && typeof result === 'object') {
+        if ('error' in result) {
+          const { error } = result;
+          if (error) {
+            console.error(`Error deleting from ${table} with match:`, match, error);
+            throw new SupabaseDbError(`Failed to delete from ${table} with match`, error.code, error);
+          }
         }
+        // If we get here, either there's no error property or error is null/undefined
+        // In both cases, the delete was successful
       } else {
-        // Handle unexpected response format
+        // Handle unexpected response format (not an object or null/undefined)
         console.error(`Unexpected response format from ${table}`);
         throw new SupabaseDbError(`Failed to delete from ${table} with match`);
       }

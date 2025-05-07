@@ -65,6 +65,29 @@ describe('SupabaseStorageService', () => {
       await expect(service.upload(bucketName, path, file)).rejects.toThrow(SupabaseStorageError);
       await expect(service.upload(bucketName, path, file)).rejects.toThrow('Failed to upload file');
     });
+
+    // New test for undefined result
+    it('should throw SupabaseStorageError when upload returns undefined result', async () => {
+      const bucketName = 'test_bucket';
+      const path = 'test_folder/test_file.txt';
+      const file = new Blob(['test content'], { type: 'text/plain' });
+      (mockUpload as jest.Mock<any>).mockResolvedValueOnce(undefined);
+
+      await expect(service.upload(bucketName, path, file)).rejects.toThrow(SupabaseStorageError);
+      await expect(service.upload(bucketName, path, file)).rejects.toThrow('Failed to upload file');
+    });
+
+    // New test for unexpected error
+    it('should handle unexpected errors during upload', async () => {
+      const bucketName = 'test_bucket';
+      const path = 'test_folder/test_file.txt';
+      const file = new Blob(['test content'], { type: 'text/plain' });
+      const unexpectedError = new Error('Unexpected network error');
+      (mockUpload as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
+
+      await expect(service.upload(bucketName, path, file)).rejects.toThrow(SupabaseStorageError);
+      await expect(service.upload(bucketName, path, file)).rejects.toThrow('Failed to upload file');
+    });
   });
 
   describe('download', () => {
@@ -101,6 +124,27 @@ describe('SupabaseStorageService', () => {
       const path = 'test_folder/test_file.txt';
       const mockError = { message: 'Download failed', statusCode: '404' };
       (mockDownload as jest.Mock<any>).mockResolvedValueOnce({ data: null, error: mockError });
+
+      await expect(service.download(bucketName, path)).rejects.toThrow(SupabaseStorageError);
+      await expect(service.download(bucketName, path)).rejects.toThrow('Failed to download file');
+    });
+
+    // New test for undefined result
+    it('should throw SupabaseStorageError when download returns undefined result', async () => {
+      const bucketName = 'test_bucket';
+      const path = 'test_folder/test_file.txt';
+      (mockDownload as jest.Mock<any>).mockResolvedValueOnce(undefined);
+
+      await expect(service.download(bucketName, path)).rejects.toThrow(SupabaseStorageError);
+      await expect(service.download(bucketName, path)).rejects.toThrow('Failed to download file');
+    });
+
+    // New test for unexpected error
+    it('should handle unexpected errors during download', async () => {
+      const bucketName = 'test_bucket';
+      const path = 'test_folder/test_file.txt';
+      const unexpectedError = new Error('Unexpected network error');
+      (mockDownload as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
 
       await expect(service.download(bucketName, path)).rejects.toThrow(SupabaseStorageError);
       await expect(service.download(bucketName, path)).rejects.toThrow('Failed to download file');
@@ -143,6 +187,25 @@ describe('SupabaseStorageService', () => {
       await expect(service.list(bucketName)).rejects.toThrow(SupabaseStorageError);
       await expect(service.list(bucketName)).rejects.toThrow('Failed to list files');
     });
+
+    // New test for undefined result
+    it('should throw SupabaseStorageError when list returns undefined result', async () => {
+      const bucketName = 'test_bucket';
+      (mockList as jest.Mock<any>).mockResolvedValueOnce(undefined);
+
+      await expect(service.list(bucketName)).rejects.toThrow(SupabaseStorageError);
+      await expect(service.list(bucketName)).rejects.toThrow('Failed to list files');
+    });
+
+    // New test for unexpected error
+    it('should handle unexpected errors during list', async () => {
+      const bucketName = 'test_bucket';
+      const unexpectedError = new Error('Unexpected network error');
+      (mockList as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
+
+      await expect(service.list(bucketName)).rejects.toThrow(SupabaseStorageError);
+      await expect(service.list(bucketName)).rejects.toThrow('Failed to list files');
+    });
   });
 
   describe('update', () => {
@@ -171,6 +234,29 @@ describe('SupabaseStorageService', () => {
       await expect(service.update(bucketName, path, file)).rejects.toThrow(SupabaseStorageError);
       await expect(service.update(bucketName, path, file)).rejects.toThrow('Failed to update file');
     });
+
+    // New test for undefined result
+    it('should throw SupabaseStorageError when update returns undefined result', async () => {
+      const bucketName = 'test_bucket';
+      const path = 'test_folder/test_file.txt';
+      const file = new Blob(['updated content'], { type: 'text/plain' });
+      (mockUpdate as jest.Mock<any>).mockResolvedValueOnce(undefined);
+
+      await expect(service.update(bucketName, path, file)).rejects.toThrow(SupabaseStorageError);
+      await expect(service.update(bucketName, path, file)).rejects.toThrow('Failed to update file');
+    });
+
+    // New test for unexpected error
+    it('should handle unexpected errors during update', async () => {
+      const bucketName = 'test_bucket';
+      const path = 'test_folder/test_file.txt';
+      const file = new Blob(['updated content'], { type: 'text/plain' });
+      const unexpectedError = new Error('Unexpected network error');
+      (mockUpdate as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
+
+      await expect(service.update(bucketName, path, file)).rejects.toThrow(SupabaseStorageError);
+      await expect(service.update(bucketName, path, file)).rejects.toThrow('Failed to update file');
+    });
   });
 
   describe('remove', () => {
@@ -193,6 +279,27 @@ describe('SupabaseStorageService', () => {
       const paths = ['test_folder/file1.txt'];
       const mockError = { message: 'Remove failed', statusCode: '500' };
       (mockRemove as jest.Mock<any>).mockResolvedValueOnce({ data: null, error: mockError });
+
+      await expect(service.remove(bucketName, paths)).rejects.toThrow(SupabaseStorageError);
+      await expect(service.remove(bucketName, paths)).rejects.toThrow('Failed to remove files');
+    });
+
+    // New test for undefined result
+    it('should throw SupabaseStorageError when remove returns undefined result', async () => {
+      const bucketName = 'test_bucket';
+      const paths = ['test_folder/file1.txt'];
+      (mockRemove as jest.Mock<any>).mockResolvedValueOnce(undefined);
+
+      await expect(service.remove(bucketName, paths)).rejects.toThrow(SupabaseStorageError);
+      await expect(service.remove(bucketName, paths)).rejects.toThrow('Failed to remove files');
+    });
+
+    // New test for unexpected error handling in remove
+    it('should handle unexpected errors during remove operation', async () => {
+      const bucketName = 'test_bucket';
+      const paths = ['test_folder/file1.txt'];
+      const unexpectedError = new Error('Network disconnected');
+      (mockRemove as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
 
       await expect(service.remove(bucketName, paths)).rejects.toThrow(SupabaseStorageError);
       await expect(service.remove(bucketName, paths)).rejects.toThrow('Failed to remove files');

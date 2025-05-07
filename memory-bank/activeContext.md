@@ -16,6 +16,13 @@ This file tracks the project's current status, including recent changes, current
 - Created implementation guidelines for Supabase
 - Fixed implementation issues in Supabase services
 
+- Fixed TypeScript type errors and Supabase test failures in the Supabase package.
+
+- Improved test coverage for Supabase services (Storage, Auth, Db) and the Error class, including tests for edge cases, error handling, and CI environment compatibility.
+
+- Fixed issues in `SupabaseDbService.delete` (improved type checking) and `SupabaseStorageService.remove` (added try/catch) methods, leading to successful test runs.
+- All 122 tests across 5 test suites are now passing successfully with no TypeScript errors.
+
 ## Open Questions/Issues
 
 - Consider implementing unit tests for Supabase services

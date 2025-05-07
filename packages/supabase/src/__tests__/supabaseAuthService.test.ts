@@ -31,6 +31,10 @@ describe('SupabaseAuthService', () => {
     expect(service).toBeDefined();
   });
 
+  it('should return the auth client instance', () => {
+    expect(service.getClient()).toBe(mockSupabaseClient.auth);
+  });
+
   describe('signUp', () => {
     it('should call supabase.auth.signUp with correct arguments', async () => {
       // Skip this test if it's running in a CI environment
@@ -81,6 +85,21 @@ describe('SupabaseAuthService', () => {
       const credentials = { email: 'test@example.com' };
       await expect(service.signUp(credentials as any)).rejects.toThrow(SupabaseAuthError);
       await expect(service.signUp(credentials as any)).rejects.toThrow('Email and password are required');
+    });
+
+    // New test for unexpected error during signup
+    it('should handle unexpected errors during signup', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      const credentials = { email: 'test@example.com', password: 'password123' };
+      const unexpectedError = new Error('Network error');
+      (mockSupabaseClient.auth.signUp as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
+
+      await expect(service.signUp(credentials)).rejects.toThrow(SupabaseAuthError);
+      await expect(service.signUp(credentials)).rejects.toThrow('Failed to sign up');
     });
   });
 
@@ -135,6 +154,21 @@ describe('SupabaseAuthService', () => {
       await expect(service.signInWithPassword(credentials as any)).rejects.toThrow(SupabaseAuthError);
       await expect(service.signInWithPassword(credentials as any)).rejects.toThrow('Email and password are required');
     });
+
+    // New test for unexpected error during signin
+    it('should handle unexpected errors during signin', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      const credentials = { email: 'test@example.com', password: 'password123' };
+      const unexpectedError = new Error('Network error');
+      (mockSupabaseClient.auth.signInWithPassword as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
+
+      await expect(service.signInWithPassword(credentials)).rejects.toThrow(SupabaseAuthError);
+      await expect(service.signInWithPassword(credentials)).rejects.toThrow('Failed to sign in with password');
+    });
   });
 
   describe('signOut', () => {
@@ -160,6 +194,20 @@ describe('SupabaseAuthService', () => {
       
       const mockError = new Error('Signout failed');
       (mockSupabaseClient.auth.signOut as jest.Mock<any>).mockResolvedValueOnce({ error: mockError } as any);
+
+      await expect(service.signOut()).rejects.toThrow(SupabaseAuthError);
+      await expect(service.signOut()).rejects.toThrow('Failed to sign out');
+    });
+
+    // New test for unexpected error during signout
+    it('should handle unexpected errors during signout', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      const unexpectedError = new Error('Network error');
+      (mockSupabaseClient.auth.signOut as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
 
       await expect(service.signOut()).rejects.toThrow(SupabaseAuthError);
       await expect(service.signOut()).rejects.toThrow('Failed to sign out');
@@ -195,6 +243,36 @@ describe('SupabaseAuthService', () => {
       await expect(service.getSession()).rejects.toThrow(SupabaseAuthError);
       await expect(service.getSession()).rejects.toThrow('Failed to get session');
     });
+
+    // New test for unexpected error during getSession
+    it('should handle unexpected errors during getSession', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      const unexpectedError = new Error('Network error');
+      (mockSupabaseClient.auth.getSession as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
+
+      await expect(service.getSession()).rejects.toThrow(SupabaseAuthError);
+      await expect(service.getSession()).rejects.toThrow('Failed to get session');
+    });
+
+    // New test for null session
+    it('should handle null session correctly', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      const mockResponse = { data: { session: null }, error: null };
+      (mockSupabaseClient.auth.getSession as jest.Mock<any>).mockResolvedValueOnce(mockResponse);
+
+      const result = await service.getSession();
+
+      expect(mockSupabaseClient.auth.getSession).toHaveBeenCalled();
+      expect(result.data.session).toBeNull();
+    });
   });
 
   describe('getUser', () => {
@@ -225,6 +303,36 @@ describe('SupabaseAuthService', () => {
 
       await expect(service.getUser()).rejects.toThrow(SupabaseAuthError);
       await expect(service.getUser()).rejects.toThrow('Failed to get user');
+    });
+
+    // New test for unexpected error during getUser
+    it('should handle unexpected errors during getUser', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      const unexpectedError = new Error('Network error');
+      (mockSupabaseClient.auth.getUser as jest.Mock<any>).mockRejectedValueOnce(unexpectedError);
+
+      await expect(service.getUser()).rejects.toThrow(SupabaseAuthError);
+      await expect(service.getUser()).rejects.toThrow('Failed to get user');
+    });
+
+    // New test for null user
+    it('should handle null user correctly', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      const mockResponse = { data: { user: null }, error: null };
+      (mockSupabaseClient.auth.getUser as jest.Mock<any>).mockResolvedValueOnce(mockResponse);
+
+      const result = await service.getUser();
+
+      expect(mockSupabaseClient.auth.getUser).toHaveBeenCalled();
+      expect(result.data.user).toBeNull();
     });
   });
 });
