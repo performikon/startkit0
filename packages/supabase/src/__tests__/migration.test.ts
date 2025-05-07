@@ -2,16 +2,26 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { MissingEnvironmentVariableError, SupabaseMigrationError } from '../errors.js';
 import {
   createMigration,
+  getMigrationStatus,
   linkProject,
   listMigrations,
+  MigrationReversionError,
+  MigrationStatus,
   pullSchema,
+  revertLastMigration,
+  revertMigration,
   runMigrations,
   seedDatabase,
+  SupabaseCliNotFoundError,
+  validateSupabaseCli,
 } from '../migration.js';
 
 // Mock modules
 // Create mock functions that we can reference later
-const mockExeca = jest.fn(() => Promise.resolve({ stdout: 'Success', stderr: '' }));
+const mockExeca = jest.fn(() => Promise.resolve({
+  stdout: '✓ 20250507T195222_create_users_table.sql\n✗ 20250507T201921_test_migration.sql',
+  stderr: ''
+}));
 const mockMkdir = jest.fn(() => Promise.resolve());
 const mockAccess = jest.fn(() => Promise.resolve());
 const mockWriteFile = jest.fn(() => Promise.resolve());
@@ -463,7 +473,7 @@ describe('Migration', () => {
   });
 
   describe('listMigrations', () => {
-    it('should call supabase migration list', async () => {
+    it('should call supabase migration list and return parsed migrations', async () => {
       // Skip this test if it's running in a CI environment
       if (process.env.CI) {
         return;
@@ -472,7 +482,13 @@ describe('Migration', () => {
       // Reset the mock to ensure it's clean for this test
       mockExeca.mockClear();
       
-      await listMigrations();
+      // Mock the execa implementation to return a specific output
+      mockExeca.mockResolvedValueOnce({
+        stdout: '✓ 20250507T195222_create_users_table.sql\n✗ 20250507T201921_test_migration.sql',
+        stderr: ''
+      });
+      
+      const result = await listMigrations();
 
       expect(execa).toHaveBeenCalledWith(
         'supabase',
@@ -482,6 +498,13 @@ describe('Migration', () => {
           shell: true,
         }
       );
+      
+      // Verify the parsed result
+      expect(result).toHaveLength(2);
+      expect(result[0]?.name).toBe('20250507T195222_create_users_table');
+      expect(result[0]?.status).toBe(MigrationStatus.APPLIED);
+      expect(result[1]?.name).toBe('20250507T201921_test_migration');
+      expect(result[1]?.status).toBe(MigrationStatus.PENDING);
     });
 
     it('should throw SupabaseMigrationError on execa error', async () => {
@@ -498,9 +521,252 @@ describe('Migration', () => {
       mockExeca.mockRejectedValueOnce(mockError);
 
       await expect(listMigrations()).rejects.toThrow(SupabaseMigrationError);
+    });
+  });
+  
+  describe('getMigrationStatus', () => {
+    it('should return applied and pending migrations', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      // Reset the mock to ensure it's clean for this test
+      mockExeca.mockClear();
+      
+      // Mock the execa implementation to return a specific output
+      mockExeca.mockResolvedValueOnce({
+        stdout: '✓ 20250507T195222_create_users_table.sql\n✗ 20250507T201921_test_migration.sql',
+        stderr: ''
+      });
+      
+      const result = await getMigrationStatus();
+      
+      expect(result.applied).toHaveLength(1);
+      expect(result.applied[0]?.name).toBe('20250507T195222_create_users_table');
+      expect(result.applied[0]?.status).toBe(MigrationStatus.APPLIED);
+      
+      expect(result.pending).toHaveLength(1);
+      expect(result.pending[0]?.name).toBe('20250507T201921_test_migration');
+      expect(result.pending[0]?.status).toBe(MigrationStatus.PENDING);
+    });
+    
+    it('should throw SupabaseMigrationError on listMigrations error', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      // Reset the mock to ensure it's clean for this test
+      mockExeca.mockClear();
+      
+      // Mock the execa implementation to reject with an error
+      const mockError = new Error('List failed');
+      mockExeca.mockRejectedValueOnce(mockError);
+      
+      await expect(getMigrationStatus()).rejects.toThrow(SupabaseMigrationError);
+    });
+  });
+  
+  describe('revertMigration', () => {
+    it('should call supabase migration down with correct arguments', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      // Reset the mock to ensure it's clean for this test
+      mockExeca.mockClear();
+      
+      // Mock the execa implementation to return a specific output for listMigrations
+      mockExeca.mockResolvedValueOnce({
+        stdout: '✓ 20250507T195222_create_users_table.sql\n✗ 20250507T201921_test_migration.sql',
+        stderr: ''
+      });
+      
+      // Mock the execa implementation for the revert operation
+      mockExeca.mockResolvedValueOnce({
+        stdout: 'Migration reverted successfully',
+        stderr: ''
+      });
+      
+      await revertMigration('create_users_table');
+      
+      // First call should be to list migrations
+      expect(execa).toHaveBeenNthCalledWith(
+        1,
+        'supabase',
+        ['migration', 'list'],
+        expect.any(Object)
+      );
+      
+      // Second call should be to revert the migration
+      expect(execa).toHaveBeenNthCalledWith(
+        2,
+        'supabase',
+        ['migration', 'down', '--target-version', '20250507T195222'],
+        {
+          cwd: 'packages/supabase/db',
+          shell: true,
+        }
+      );
+    });
+    
+    it('should throw MigrationReversionError if migration not found', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      // Reset the mock to ensure it's clean for this test
+      mockExeca.mockClear();
+      
+      // Mock the execa implementation to return a specific output for listMigrations
+      mockExeca.mockResolvedValueOnce({
+        stdout: '✓ 20250507T195222_create_users_table.sql\n✗ 20250507T201921_test_migration.sql',
+        stderr: ''
+      });
+      
+      await expect(revertMigration('nonexistent_migration')).rejects.toThrow(MigrationReversionError);
+      await expect(revertMigration('nonexistent_migration')).rejects.toThrow("Migration 'nonexistent_migration' not found or not applied");
+    });
+    
+    it('should throw MigrationReversionError on execa error', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      // Reset the mock to ensure it's clean for this test
+      mockExeca.mockClear();
+      
+      // Mock the execa implementation to return a specific output for listMigrations
+      mockExeca.mockResolvedValueOnce({
+        stdout: '✓ 20250507T195222_create_users_table.sql\n✗ 20250507T201921_test_migration.sql',
+        stderr: ''
+      });
+      
+      // Mock the execa implementation to reject with an error for the revert operation
+      const mockError = new Error('Revert failed');
+      mockExeca.mockRejectedValueOnce(mockError);
+      
+      await expect(revertMigration('create_users_table')).rejects.toThrow(MigrationReversionError);
+      await expect(revertMigration('create_users_table')).rejects.toThrow("Failed to revert migration 'create_users_table'");
+    });
+  });
+  
+  describe('validateSupabaseCli', () => {
+    it('should resolve successfully when supabase CLI is available', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      // Reset the mock to ensure it's clean for this test
+      mockExeca.mockClear();
+      
+      // Mock the execa implementation to return a successful response
+      mockExeca.mockResolvedValueOnce({
+        stdout: 'supabase version 1.0.0',
+        stderr: ''
+      });
+      
+      // The function should resolve without throwing an error
+      await expect(validateSupabaseCli()).resolves.not.toThrow();
+      
+      // Verify that execa was called with the correct arguments
+      expect(execa).toHaveBeenCalledWith(
+        'supabase',
+        ['--version'],
+        { shell: true }
+      );
+    });
+    
+    it('should throw SupabaseCliNotFoundError when supabase CLI is not available', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      // Reset the mock to ensure it's clean for this test
+      mockExeca.mockClear();
+      
+      // Mock the execa implementation to reject with an error
+      const mockError = new Error('Command not found: supabase');
+      mockExeca.mockRejectedValueOnce(mockError);
+      
+      // The function should throw a SupabaseCliNotFoundError
+      await expect(validateSupabaseCli()).rejects.toThrow(SupabaseCliNotFoundError);
+      await expect(validateSupabaseCli()).rejects.toThrow('Supabase CLI not found');
+      
+      // Verify that execa was called with the correct arguments
+      expect(execa).toHaveBeenCalledWith(
+        'supabase',
+        ['--version'],
+        { shell: true }
+      );
+    });
+  });
+
+  describe('revertLastMigration', () => {
+    it('should revert the most recently applied migration', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      // Reset the mock to ensure it's clean for this test
+      mockExeca.mockClear();
+      
+      // Mock the execa implementation to return a specific output for listMigrations
+      mockExeca.mockResolvedValueOnce({
+        stdout: '✓ 20250507T195222_create_users_table.sql\n✓ 20250507T201859_test_migration.sql',
+        stderr: ''
+      });
+      
+      // Mock the execa implementation for the second listMigrations call
+      mockExeca.mockResolvedValueOnce({
+        stdout: '✓ 20250507T195222_create_users_table.sql\n✓ 20250507T201859_test_migration.sql',
+        stderr: ''
+      });
+      
+      // Mock the execa implementation for the revert operation
+      mockExeca.mockResolvedValueOnce({
+        stdout: 'Migration reverted successfully',
+        stderr: ''
+      });
+      
+      await revertLastMigration();
+      
+      // The last call should be to revert the migration with the latest timestamp
+      expect(execa).toHaveBeenLastCalledWith(
+        'supabase',
+        ['migration', 'down', '--target-version', '20250507T201859'],
+        expect.any(Object)
+      );
+    });
+    
+    it('should throw MigrationReversionError if no applied migrations', async () => {
+      // Skip this test if it's running in a CI environment
+      if (process.env.CI) {
+        return;
+      }
+      
+      // Reset the mock to ensure it's clean for this test
+      mockExeca.mockClear();
+      
+      // Mock the execa implementation to return a specific output for listMigrations
+      mockExeca.mockResolvedValueOnce({
+        stdout: '✗ 20250507T201921_test_migration.sql',
+        stderr: ''
+      });
+      
+      await expect(revertLastMigration()).rejects.toThrow(MigrationReversionError);
+      await expect(revertLastMigration()).rejects.toThrow('No applied migrations to revert');
       
       // Reset the mock again for the second test
       mockExeca.mockClear();
+      const mockError = new Error('List failed');
       mockExeca.mockRejectedValueOnce(mockError);
       
       await expect(listMigrations()).rejects.toThrow('Failed to list migrations');
