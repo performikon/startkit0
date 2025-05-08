@@ -1,7 +1,13 @@
 # System Patterns
 
-This file documents recurring patterns and standards used in the project.
-It is optional, but recommended to be updated as the project evolves.
+## Purpose
+
+This file documents recurring patterns, standards, and architectural decisions used in the project. It serves as a central reference for technical implementation details.
+
+## Update Format
+
+Updates should be timestamped and appended to the relevant section:
+`[YYYY-MM-DD HH:MM:SS] - [Description of Pattern/Change]`
 
 ## Coding Patterns
 
@@ -26,3 +32,7 @@ It is optional, but recommended to be updated as the project evolves.
 - Jest for unit and integration tests
 - End-to-end tests with Jest and Supertest
 - Test coverage tracking
+
+## Change History
+
+[2025-05-08 13:01:00] - Standardized documentation format and consolidated architectural patterns
