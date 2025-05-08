@@ -1,13 +1,20 @@
 // packages/supabase/src/supabaseDbService.ts
 
+import { getSupabaseConfig } from '@repo/config';
+import { createClient } from '@supabase/supabase-js';
 import { SupabaseDbError } from './errors.js';
 import { ISupabaseClient, ISupabaseDbService } from './interfaces.js';
 
 export class SupabaseDbService implements ISupabaseDbService {
   private client: ISupabaseClient;
 
-  constructor(supabaseClient: ISupabaseClient) {
-    this.client = supabaseClient;
+  constructor(supabaseClient?: ISupabaseClient) {
+    if (supabaseClient) {
+      this.client = supabaseClient;
+    } else {
+      const config = getSupabaseConfig();
+      this.client = createClient(config.url, config.apiKey) as ISupabaseClient;
+    }
   }
 
   getClient(): ISupabaseClient {

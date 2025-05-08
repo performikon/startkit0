@@ -15,7 +15,7 @@
     "db:seed:reset": "node scripts/migrations/run-migrations.js --seed --reset",
     "migrate:create": "node scripts/migrations/create-migration.js",
     "db:view": "node scripts/utils/view-database.js",
-    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --config config/jest.config.js",
+    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --config jest.config.js",
     "verify:auth": "node scripts/verify/auth-service.js",
     "verify:db": "node scripts/verify/db-service.js",
     "verify:storage": "node scripts/verify/storage-service.js",
@@ -34,6 +34,7 @@
     "ts-jest": "^29.3.2"
   },
   "dependencies": {
+    "@repo/config": "*",
     "@repo/types": "*",
     "@supabase/supabase-js": "^2.49.4",
     "chalk": "^4.1.2"

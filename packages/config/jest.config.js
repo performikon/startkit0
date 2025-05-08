@@ -15,7 +15,7 @@ const config = {
       },
     ],
   },
-  rootDir: '../',
+  rootDir: './',
   testRegex: '.*\\.test\\.ts$',
   collectCoverageFrom: ['src/**/*.ts', '!src/**/*.test.ts'],
   coverageDirectory: './coverage',

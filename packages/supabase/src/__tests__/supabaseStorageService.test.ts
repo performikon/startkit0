@@ -2,6 +2,24 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { SupabaseStorageError } from '../errors.js';
 import { SupabaseStorageService } from '../supabaseStorageService.js';
 
+// Mock the @repo/config module
+jest.mock('@repo/config', () => ({
+  getSupabaseConfig: jest.fn().mockReturnValue({
+    url: 'https://mock-supabase-url.com',
+    apiKey: 'mock-api-key',
+    environment: 'test'
+  })
+}));
+
+// Mock the createClient function from @supabase/supabase-js
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn().mockReturnValue({
+    storage: {
+      from: jest.fn()
+    }
+  })
+}));
+
 // Mock the Supabase client and its storage methods
 const mockFrom = jest.fn();
 const mockUpload = jest.fn();

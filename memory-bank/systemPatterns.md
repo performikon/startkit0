@@ -26,6 +26,7 @@ Updates should be timestamped and appended to the relevant section:
 - Shared packages for cross-application code reuse
 - Supabase for database, authentication, RLS, and storage
 - Docker for containerization
+- Centralized environment configuration management using a shared `packages/config` package.
 
 ## Testing Patterns
 

@@ -1,14 +1,20 @@
 // packages/supabase/src/supabaseAuthService.ts
 
-import { AuthResponse, Session, User } from '@supabase/supabase-js';
+import { getSupabaseConfig } from '@repo/config';
+import { AuthResponse, createClient, Session, User } from '@supabase/supabase-js';
 import { SupabaseAuthError } from './errors.js';
 import { ISupabaseAuthService, ISupabaseClient } from './interfaces.js';
 
 export class SupabaseAuthService implements ISupabaseAuthService {
   private client: ISupabaseClient;
 
-  constructor(supabaseClient: ISupabaseClient) {
-    this.client = supabaseClient;
+  constructor(supabaseClient?: ISupabaseClient) {
+    if (supabaseClient) {
+      this.client = supabaseClient;
+    } else {
+      const config = getSupabaseConfig();
+      this.client = createClient(config.url, config.apiKey) as ISupabaseClient;
+    }
   }
 
   getClient(): ISupabaseClient['auth'] {

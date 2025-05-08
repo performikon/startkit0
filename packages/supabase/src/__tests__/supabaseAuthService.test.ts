@@ -2,6 +2,28 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { SupabaseAuthError } from '../errors.js';
 import { SupabaseAuthService } from '../supabaseAuthService.js';
 
+// Mock the @repo/config module
+jest.mock('@repo/config', () => ({
+  getSupabaseConfig: jest.fn().mockReturnValue({
+    url: 'https://mock-supabase-url.com',
+    apiKey: 'mock-api-key',
+    environment: 'test'
+  })
+}));
+
+// Mock the createClient function from @supabase/supabase-js
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn().mockReturnValue({
+    auth: {
+      signUp: jest.fn(),
+      signInWithPassword: jest.fn(),
+      signOut: jest.fn(),
+      getUser: jest.fn(),
+      getSession: jest.fn(),
+    }
+  })
+}));
+
 // Set CI environment variable to true to skip problematic tests
 process.env.CI = 'true';
 
